@@ -57,7 +57,7 @@ public class Pathfinder : MonoBehaviour
     }
     int RoundedEuclideanDistance(Vector3Int origin, Vector3Int target)
     {
-        return Mathf.FloorToInt(Vector3Int.Distance(origin, target));
+        return Mathf.FloorToInt(Vector3Int.Distance(origin, target)*10);
     }
 
     int NaturalChebyshevDistance(Vector3Int origin,Vector3Int target)
@@ -114,8 +114,21 @@ public class Pathfinder : MonoBehaviour
            
             List<Vector3Int> neighbors = CheckValidNeighbors(currentNode,NavNodes);
             foreach (Vector3Int neighborNode in neighbors) {
-                int TentativeCumulativeCost = baseCostMap[currentNode] + NavNodes[neighborNode] + (neighborNode.y > currentNode.y ? 10 : 0);
+                int TentativeCumulativeCost = baseCostMap[currentNode] + NavNodes[neighborNode] ;
+
+                //correct zigzag
+                if (neighborNode.y > currentNode.y)
+                {
+                    TentativeCumulativeCost += 10;
+                    if (neighborNode.x != currentNode.x)
+                        TentativeCumulativeCost += 1;
+                    if (neighborNode.z != currentNode.z)
+                        TentativeCumulativeCost += 1;
+                }
                 
+                TentativeCumulativeCost += !(neighborNode.x == currentNode.x || neighborNode.z == currentNode.z) ? 10 : 0;
+                 
+
                 if (!baseCostMap.ContainsKey(neighborNode) || TentativeCumulativeCost < baseCostMap[neighborNode] ) {
                     predecesorMap[neighborNode] = currentNode;
                     baseCostMap[neighborNode] = TentativeCumulativeCost;

@@ -14,6 +14,10 @@ public class Grid3D : MonoBehaviour
     private List<GameObject> pathIndicators = new();
     public Pathfinder pf;
 
+    [Header("Costs")]
+    public int floorCost = 10;
+    public int wallCost = 80;
+
     public void Awake()
     {
         NavBlock[] startingBlocks = FindObjectsByType<NavBlock>(FindObjectsSortMode.None);
@@ -43,21 +47,23 @@ public class Grid3D : MonoBehaviour
 
     private int ComputeCost(Vector3Int pos)
     {
+        // has floor straight down
         if (placedCubes.ContainsKey(pos + Vector3Int.down))
-            return 10;
+            return floorCost;
+        // floor down in the corners
+        //if (placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.forward) ||
+        //       placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.back) ||
+        //       placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.left) ||
+        //       placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.right) 
+        //      )
+        //    return 60;
 
-        if (placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.forward) ||
-               placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.back) ||
-               placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.left) ||
-               placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.right) 
-              )
-            return 60;
-
-        if (placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.forward + Vector3Int.left) ||
-               placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.forward + Vector3Int.right) ||
-               placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.back + Vector3Int.left) ||
-               placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.back + Vector3Int.right))
-            return 120;
+        // 
+        //if (placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.forward + Vector3Int.left) ||
+        //       placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.forward + Vector3Int.right) ||
+        //       placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.back + Vector3Int.left) ||
+        //       placedCubes.ContainsKey(pos + Vector3Int.down + Vector3Int.back + Vector3Int.right))
+        //    return 120;
 
         if (placedCubes.ContainsKey(pos + Vector3Int.forward) || 
                 placedCubes.ContainsKey(pos + Vector3Int.back) ||
@@ -67,7 +73,7 @@ public class Grid3D : MonoBehaviour
                 placedCubes.ContainsKey(pos + Vector3Int.forward + Vector3Int.right) ||
                 placedCubes.ContainsKey(pos + Vector3Int.back + Vector3Int.left) ||
                 placedCubes.ContainsKey(pos + Vector3Int.back + Vector3Int.right))
-            return 180;
+            return wallCost;
 
 
         return 10000;
