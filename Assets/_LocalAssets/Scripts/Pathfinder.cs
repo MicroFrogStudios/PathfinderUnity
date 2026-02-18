@@ -150,6 +150,11 @@ public class Pathfinder : MonoBehaviour
 
     private List<Vector3Int> CheckValidNeighbors(Vector3Int gridPos, Dictionary<Vector3Int, int>  NavNodes)
     {
+        if (heuristicSelection == EnumHeuristic.Manhatan)
+        {
+            //check only orthogonal neighbors
+        }
+
         List<Vector3Int> neighborsList = new();
         for (int x = -1; x <= 1; x++)
         {
