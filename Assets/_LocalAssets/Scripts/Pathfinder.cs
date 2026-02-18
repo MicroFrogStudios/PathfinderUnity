@@ -8,6 +8,9 @@ using UnityEngine.Tilemaps;
 public class Pathfinder : MonoBehaviour
 {
 
+    public Stack<Vector3Int> currentPath = new();
+    public Vector3 currentObjective = Vector3.negativeInfinity;
+
     private enum EnumHeuristic
     {
         Chebyshev,
@@ -41,7 +44,7 @@ public class Pathfinder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+       
     }
 
     int ChebyshevDistance(Vector3Int origin, Vector3Int target)
@@ -114,7 +117,7 @@ public class Pathfinder : MonoBehaviour
            
             List<Vector3Int> neighbors = CheckValidNeighbors(currentNode,NavNodes);
             foreach (Vector3Int neighborNode in neighbors) {
-                int TentativeCumulativeCost = baseCostMap[currentNode] + NavNodes[neighborNode] ;
+                int TentativeCumulativeCost = baseCostMap[currentNode] + NavNodes[neighborNode];
 
                 //correct zigzag
                 if (neighborNode.y > currentNode.y)
@@ -124,6 +127,7 @@ public class Pathfinder : MonoBehaviour
                         TentativeCumulativeCost += 1;
                     if (neighborNode.z != currentNode.z)
                         TentativeCumulativeCost += 1;
+
                 }
                 
                 TentativeCumulativeCost += !(neighborNode.x == currentNode.x || neighborNode.z == currentNode.z) ? 10 : 0;
@@ -141,7 +145,7 @@ public class Pathfinder : MonoBehaviour
         }
 
 
-        return null;
+        return new();
     }
 
     private List<Vector3Int> CheckValidNeighbors(Vector3Int gridPos, Dictionary<Vector3Int, int>  NavNodes)
@@ -161,9 +165,7 @@ public class Pathfinder : MonoBehaviour
                     {
                         neighborsList.Add(neighborPos);
 
-                    }
-                    // Do your logic here (e.g., check if a tile exists at neighborPos)
-                    
+                    }  
                 }
             }
         }

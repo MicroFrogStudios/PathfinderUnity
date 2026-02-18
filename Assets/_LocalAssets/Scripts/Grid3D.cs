@@ -106,7 +106,23 @@ public class Grid3D : MonoBehaviour
         HandleLeftClick();
         HandleRightClick();
 
+        if (pf.currentPath.Count > 0)
+        {
+            Debug.Log(pf.currentPath.Count);
+            Debug.Log(pf.currentObjective != Vector3.negativeInfinity);
+           
+                
 
+
+            pf.transform.position = Vector3.MoveTowards(pf.transform.position, GridToWorld(pf.currentPath.Peek()), 5f*Time.deltaTime);
+
+            if (Vector3.Distance(pf.transform.position, GridToWorld(pf.currentPath.Peek())) < 0.01)
+            {
+                GridToWorld(pf.currentPath.Pop());
+
+            }
+        }
+ 
 
     }
 
@@ -129,25 +145,30 @@ public class Grid3D : MonoBehaviour
                 }
                 else
                 {
-                    pathIndicators.ForEach(i =>  Destroy(i) );
-                    pathIndicators = new();
-                    Stack<Vector3Int> path = pf.PathTo(WorldToGrid(pf.transform.position), WorldToGrid(hit.point), NavNodes);
-                    if (path == null)
-                    {
-                        Debug.Log("No path found");
-                        return;
-                    }
-                    Debug.Log(path.Count);
-                    while (path.Count > 0)
-                    {
-                        Vector3Int nextNode = path.Pop();
-                        GameObject indicator = Instantiate(IndicatorPrefab);
-                        indicator.transform.position = GridToWorld(nextNode);
-                        pathIndicators.Add(indicator);
-
-                    }
+                    ProduceIndicators(hit.point);
                 }
             }
+        }
+    }
+
+    private void ProduceIndicators( Vector3 objective)
+    {
+        pathIndicators.ForEach(i => Destroy(i));
+        pathIndicators = new();
+        Stack<Vector3Int> path = pf.PathTo(WorldToGrid(pf.transform.position), WorldToGrid(objective), NavNodes);
+        if (path.Count <= 0)
+        {
+            Debug.Log("No path found");
+            return;
+        }
+        Debug.Log(path.Count);
+        while (path.Count > 0)
+        {
+            Vector3Int nextNode = path.Pop();
+            GameObject indicator = Instantiate(IndicatorPrefab);
+            indicator.transform.position = GridToWorld(nextNode);
+            pathIndicators.Add(indicator);
+
         }
     }
 
@@ -169,7 +190,10 @@ public class Grid3D : MonoBehaviour
                 }
                 else
                 {
+
                     // Move player to point
+                    ProduceIndicators(hit.point);
+                    pf.currentPath = pf.PathTo(WorldToGrid(pf.transform.position), WorldToGrid(hit.point), NavNodes);
                 }
             }
         }
