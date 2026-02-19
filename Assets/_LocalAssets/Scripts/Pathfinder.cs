@@ -11,17 +11,17 @@ public class Pathfinder : MonoBehaviour
     public Stack<Vector3Int> currentPath = new();
     public Vector3 currentObjective = Vector3.negativeInfinity;
 
-    private enum EnumHeuristic
+    public enum EnumHeuristic
     {
-        Chebyshev,
-        NatChebyhev,
-        Manhatan,
-        Euclidean
+        NoHeuristic = 0,
+        Chebyshev = 1,
+        Manhatan = 2,
+        Euclidean = 3
 
     }
 
     [SerializeField]
-    private EnumHeuristic heuristicSelection;
+    public EnumHeuristic heuristicSelection;
     private Dictionary<EnumHeuristic, Func<Vector3Int, Vector3Int, int>> HeuristicsDict;
 
 
@@ -29,8 +29,8 @@ public class Pathfinder : MonoBehaviour
     {
         HeuristicsDict = new()
         {
+            [EnumHeuristic.NoHeuristic] = NoHeuristic,
             [EnumHeuristic.Chebyshev] = ChebyshevDistance,
-            [EnumHeuristic.NatChebyhev] = NaturalChebyshevDistance,
             [EnumHeuristic.Manhatan] = ManhatanDistance,
             [EnumHeuristic.Euclidean] = RoundedEuclideanDistance
         };
@@ -45,6 +45,12 @@ public class Pathfinder : MonoBehaviour
     void Update()
     {
        
+    }
+
+    int NoHeuristic(Vector3Int origin, Vector3Int target)
+    {
+        //Equates Djistra algortihm
+        return 0;
     }
 
     int ChebyshevDistance(Vector3Int origin, Vector3Int target)
@@ -63,15 +69,6 @@ public class Pathfinder : MonoBehaviour
         return Mathf.FloorToInt(Vector3Int.Distance(origin, target)*10);
     }
 
-    int NaturalChebyshevDistance(Vector3Int origin,Vector3Int target)
-    {
-        int baseDistance = ChebyshevDistance(origin, target);
-        if (!(origin.x == target.x || origin.z == target.z))
-        {
-            baseDistance++;
-        } 
-        return baseDistance;
-    }
 
     private Stack<Vector3Int> ReconstructPath(Dictionary<Vector3Int, Vector3Int> previousPath, Vector3Int currentNode)
     {
@@ -130,7 +127,13 @@ public class Pathfinder : MonoBehaviour
 
                 }
                 
-                TentativeCumulativeCost += !(neighborNode.x == currentNode.x || neighborNode.z == currentNode.z) ? 10 : 0;
+                if (heuristicSelection == EnumHeuristic.Manhatan)
+                {
+                    //make manhatan zigzag
+                    int endDiagonal = end.x - end.z;
+                    TentativeCumulativeCost += Mathf.Abs((neighborNode.x - neighborNode.z) - endDiagonal);
+                }else
+                    TentativeCumulativeCost += !(neighborNode.x == currentNode.x || neighborNode.z == currentNode.z) ? 10 : 0;
                  
 
                 if (!baseCostMap.ContainsKey(neighborNode) || TentativeCumulativeCost < baseCostMap[neighborNode] ) {
@@ -153,6 +156,16 @@ public class Pathfinder : MonoBehaviour
         if (heuristicSelection == EnumHeuristic.Manhatan)
         {
             //check only orthogonal neighbors
+            List<Vector3Int> neighbors = new()
+                {
+                gridPos + Vector3Int.up,
+                gridPos + Vector3Int.down,
+                gridPos + Vector3Int.left,
+                gridPos + Vector3Int.right,
+                gridPos + Vector3Int.forward,
+                gridPos + Vector3Int.back,
+                 };
+            return neighbors.FindAll((x)=> NavNodes.ContainsKey(x));
         }
 
         List<Vector3Int> neighborsList = new();
