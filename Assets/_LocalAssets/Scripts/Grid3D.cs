@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -22,8 +23,8 @@ public class Grid3D : MonoBehaviour
     
 
     public Pathfinder pf;
-    public Toggle editToggle, ClimbToggle, CornerToggle;
-    public TMP_Text heurLabel, editControlUI,pathControlUI;
+    public Toggle editToggle, ClimbToggle, CornerToggle, correctionsToggle;
+    public TMP_Text heurLabel, editControlUI,pathControlUI,diagUI;
 
     [Header("Costs")]
     public int floorCost = 10;
@@ -134,12 +135,8 @@ public class Grid3D : MonoBehaviour
 
         if (pf.currentPath.Count > 0)
         {
-            Debug.Log(pf.currentPath.Count);
-            Debug.Log(pf.currentObjective != Vector3.negativeInfinity);
 
             int currentNodeCost = NavNodes[pf.currentPath.Peek()];
-
-
             pf.transform.position = Vector3.MoveTowards(pf.transform.position, GridToWorld(pf.currentPath.Peek()), Mathf.Clamp(5f*floorCost/ currentNodeCost,2f,5f) * Time.deltaTime);
 
             if (Vector3.Distance(pf.transform.position, GridToWorld(pf.currentPath.Peek())) < 0.01)
@@ -156,6 +153,10 @@ public class Grid3D : MonoBehaviour
 
     private void HandleToggles()
     {
+        if (Input.GetKeyDown(KeyCode.Escape)) 
+            Application.Quit();
+            
+
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             OnEditToggle(!editing);
@@ -167,6 +168,10 @@ public class Grid3D : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             OnCornerToggle(!allowCorners);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            OnCorrectionsToggle();
         }
         if (Input.GetKeyDown(KeyCode.Tab))
         {
@@ -207,13 +212,18 @@ public class Grid3D : MonoBehaviour
     {
         pathIndicators.ForEach(i => Destroy(i));
         pathIndicators = new();
+        long startCalc = System.Diagnostics.Stopwatch.GetTimestamp();
         Stack<Vector3Int> path = pf.PathTo(WorldToGrid(pf.transform.position), WorldToGrid(objective), NavNodes);
+        long calcTime = System.Diagnostics.Stopwatch.GetTimestamp() - startCalc;
+        //double milsec = (calcTime / System.Diagnostics.Stopwatch.Frequency) * 1000000;
         if (path.Count <= 0)
         {
             Debug.Log("No path found");
+            diagUI.text = "No path found";
             return;
         }
-        Debug.Log(path.Count);
+        Debug.Log(pf.heuristicSelection.ToString() +" pathfinding took " + calcTime.ToString() + " ticks and searched " + pf.LastNodeSearchCount + " nodes");
+        diagUI.text = "Searched " + pf.LastNodeSearchCount + " nodes in " + calcTime.ToString() + " ticks.";
         while (path.Count > 0)
         {
             Vector3Int nextNode = path.Pop();
@@ -280,11 +290,7 @@ public class Grid3D : MonoBehaviour
         {
             BakeNavMesh();
         }
-        else
-        {
-            pathIndicators.ForEach(i => Destroy(i));
-            pathIndicators = new();
-        }
+        
     }
 
     public void OnCornerToggle(bool toggle)
@@ -296,11 +302,7 @@ public class Grid3D : MonoBehaviour
         {
             BakeNavMesh();
         }
-        else
-        {
-            pathIndicators.ForEach(i => Destroy(i));
-            pathIndicators = new();
-        }
+        
     }
 
     public void OnHeuristicToggle()
@@ -312,10 +314,15 @@ public class Grid3D : MonoBehaviour
         {
             BakeNavMesh();
         }
-        else
+        
+    }
+    public void OnCorrectionsToggle()
+    {
+        pf.pathingCorrections = !pf.pathingCorrections;
+        correctionsToggle.isOn = pf.pathingCorrections;
+        if (!editing)
         {
-            pathIndicators.ForEach(i => Destroy(i));
-            pathIndicators = new();
+            BakeNavMesh();
         }
     }
 

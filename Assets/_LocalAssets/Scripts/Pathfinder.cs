@@ -11,6 +11,8 @@ public class Pathfinder : MonoBehaviour
     public Stack<Vector3Int> currentPath = new();
     public Vector3 currentObjective = Vector3.negativeInfinity;
 
+    public int LastNodeSearchCount = 0;
+    public bool pathingCorrections = true;
     public enum EnumHeuristic
     {
         NoHeuristic = 0,
@@ -56,13 +58,13 @@ public class Pathfinder : MonoBehaviour
     int ChebyshevDistance(Vector3Int origin, Vector3Int target)
     {
         // Chebyshev distance
-        return Mathf.Max(Mathf.Abs(target.x - origin.x), Mathf.Abs(target.y - origin.y), Mathf.Abs(target.z - origin.z));
+        return Mathf.Max(Mathf.Abs(target.x - origin.x), Mathf.Abs(target.y - origin.y), Mathf.Abs(target.z - origin.z))*10;
     }
 
     int ManhatanDistance(Vector3Int origin, Vector3Int target)
     {
         //Manhatan Distance
-        return Mathf.Abs(target.x - origin.x) + Mathf.Abs(target.y - origin.y) + Mathf.Abs(target.z - origin.z);
+        return Mathf.Abs(target.x - origin.x) + Mathf.Abs(target.y - origin.y) + Mathf.Abs(target.z - origin.z)*10;
     }
     int RoundedEuclideanDistance(Vector3Int origin, Vector3Int target)
     {
@@ -100,10 +102,10 @@ public class Pathfinder : MonoBehaviour
 
         // Mapa de coste base + Heuristica
         Dictionary<Vector3Int, int> CombinedCostMap = new() { [start] = heuristic(start, end) };
-
+        LastNodeSearchCount = 0;
         while (NodeSet.Count > 0)
         {
-
+            LastNodeSearchCount++;
             Vector3Int currentNode = NodeSet.Aggregate((acc, x) => CombinedCostMap[x] < CombinedCostMap[acc] ? x : acc);
             if (currentNode == end)
             {
@@ -116,26 +118,31 @@ public class Pathfinder : MonoBehaviour
             foreach (Vector3Int neighborNode in neighbors) {
                 int TentativeCumulativeCost = baseCostMap[currentNode] + NavNodes[neighborNode];
 
-                //correct zigzag
-                if (neighborNode.y > currentNode.y)
-                {
-                    TentativeCumulativeCost += 10;
-                    if (neighborNode.x != currentNode.x)
-                        TentativeCumulativeCost += 1;
-                    if (neighborNode.z != currentNode.z)
-                        TentativeCumulativeCost += 1;
 
+                if (pathingCorrections)
+                {
+                    if (heuristicSelection == EnumHeuristic.Manhatan)
+                    {
+                        //make manhatan zigzag
+                        int endDiagonal = end.x - end.z;
+                        TentativeCumulativeCost += Mathf.Abs((neighborNode.x - neighborNode.z) - endDiagonal);
+                    }
+                    else if (heuristicSelection != EnumHeuristic.NoHeuristic)
+                    {
+                        //correct zigzag
+                        if (neighborNode.y > currentNode.y)
+                        {
+                            TentativeCumulativeCost += 10;
+                            if (neighborNode.x != currentNode.x)
+                                TentativeCumulativeCost += 1;
+                            if (neighborNode.z != currentNode.z)
+                                TentativeCumulativeCost += 1;
+
+                        }
+                        TentativeCumulativeCost += !(neighborNode.x == currentNode.x || neighborNode.z == currentNode.z) ? 10 : 0;
+                    }
                 }
                 
-                if (heuristicSelection == EnumHeuristic.Manhatan)
-                {
-                    //make manhatan zigzag
-                    int endDiagonal = end.x - end.z;
-                    TentativeCumulativeCost += Mathf.Abs((neighborNode.x - neighborNode.z) - endDiagonal);
-                }else
-                    TentativeCumulativeCost += !(neighborNode.x == currentNode.x || neighborNode.z == currentNode.z) ? 10 : 0;
-                 
-
                 if (!baseCostMap.ContainsKey(neighborNode) || TentativeCumulativeCost < baseCostMap[neighborNode] ) {
                     predecesorMap[neighborNode] = currentNode;
                     baseCostMap[neighborNode] = TentativeCumulativeCost;
