@@ -10,7 +10,7 @@ Tras tener claro como implementarlo, y con el pseudocódigo al lado, se crea una
 
 ## **Creación de un *Grid* en 3D**
 
-En lugar de los `Tileset` 2D propios de Unity, para distribuir los nodos del algoritmo en un espacio tridimensional, se crea la clase `Grid3D` en C# para traducir el espacio continuo 3D de Unity, a casillas cúbicas discretas con lado 1 unidad de mediad de Unity.
+En lugar de los `Tileset` 2D propios de Unity, para distribuir los nodos del algoritmo en un espacio tridimensional, se crea la clase `Grid3D` en C# para traducir el espacio continuo 3D de Unity, a casillas cúbicas discretas con lado 1 unidad de medida de Unity.
 
 Esta clase es capaz de convertir entre coordenadas en `WorldSpace` de Unity y casillas del `Grid3D`.
 
