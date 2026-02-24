@@ -124,8 +124,9 @@ public class Pathfinder : MonoBehaviour
                     if (heuristicSelection == EnumHeuristic.Manhatan)
                     {
                         //make manhatan zigzag
-                        int endDiagonal = end.x - end.z;
-                        TentativeCumulativeCost += Mathf.Abs((neighborNode.x - neighborNode.z) - endDiagonal);
+                        int endDiagonal = Mathf.Abs(Mathf.Abs(end.x- neighborNode.x) - Mathf.Abs(end.z- neighborNode.z));
+                        TentativeCumulativeCost += endDiagonal;
+                        Debug.Log(TentativeCumulativeCost);
                     }
                     else if (heuristicSelection != EnumHeuristic.NoHeuristic)
                     {
